@@ -150,6 +150,7 @@ async def build_async_engine_client(
 
     # Context manager to handle engine_client lifecycle
     # Ensures everything is shutdown and cleaned up on error/exit
+    # engine_args is EngineArgs
     engine_args = AsyncEngineArgs.from_cli_args(args)
 
     async with build_async_engine_client_from_engine_args(
@@ -174,6 +175,7 @@ async def build_async_engine_client_from_engine_args(
 
     # Create the EngineConfig (determines if we can use V1).
     usage_context = UsageContext.OPENAI_API_SERVER
+    # vllm.engine.arg_utils.py
     vllm_config = engine_args.create_engine_config(usage_context=usage_context)
 
     # V1 AsyncLLM.
@@ -1340,14 +1342,16 @@ async def run_server_worker(listen_address,
     if log_config is not None:
         uvicorn_kwargs['log_config'] = log_config
 
-    async with build_async_engine_client(args, client_config) as engine_client:
+    async with build_async_engine_client(args, client_config) as engine_client:  # AsyncLLM
         app = build_app(args)
 
-        vllm_config = await engine_client.get_vllm_config()
+        vllm_config = await engine_client.get_vllm_config()  # AsyncLLM.from_vllm_config
+        # app.state is a dict for FastAPI app
         await init_app_state(engine_client, vllm_config, app.state, args)
 
         logger.info("Starting vLLM API server %d on %s", server_index,
                     listen_address)
+        # vllm.entrypoints.launcher.py:serve_http
         shutdown_task = await serve_http(
             app,
             sock=sock,

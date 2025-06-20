@@ -47,6 +47,7 @@ class ServeSubcommand(CLISubcommand):
     def cmd(args: argparse.Namespace) -> None:
         # If model is specified in CLI (as positional arg), it takes precedence
         if hasattr(args, 'model_tag') and args.model_tag is not None:
+            # vllm serve facebook/opt-125m中的最后一个参数
             args.model = args.model_tag
 
         if args.headless or args.api_server_count < 1:

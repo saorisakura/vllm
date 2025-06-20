@@ -895,9 +895,11 @@ class EngineArgs:
         # Get the list of attributes of this dataclass.
         attrs = [attr.name for attr in dataclasses.fields(cls)]
         # Set the attributes from the parsed arguments.
+        # model
         engine_args = cls(**{attr: getattr(args, attr) for attr in attrs})
         return engine_args
 
+    # 将传入的model_tag封装成ModelConfig
     def create_model_config(self) -> ModelConfig:
         # gguf file needs a specific model loader and doesn't use hf_repo
         if check_gguf_file(self.model):
@@ -998,6 +1000,7 @@ class EngineArgs:
 
         return speculative_config
 
+    # called by api_server.py: build_async_engine_client.build_async_engine_client_from_engine_args
     def create_engine_config(
         self,
         usage_context: Optional[UsageContext] = None,
