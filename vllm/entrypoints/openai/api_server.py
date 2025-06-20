@@ -1179,6 +1179,9 @@ async def init_app_state(
         prompt_adapters=args.prompt_adapters,
     )
     await state.openai_serving_models.init_static_loras()
+    # 下面每个方法都会有一个对应的server运行
+    # OpenAIServing from vllm.entrypoints.openai.serving_engine.py
+    # 下面每个class实现OpenAIServing的_preprocess、_build_response（in _pipeline）
     state.openai_serving_chat = OpenAIServingChat(
         engine_client,
         model_config,
