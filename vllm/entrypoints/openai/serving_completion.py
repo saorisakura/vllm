@@ -190,6 +190,7 @@ class OpenAIServingCompletion(OpenAIServing):
                         lora_request=lora_request,
                     )
                 else:
+                    # MQLLMEngine Client
                     generator = self.engine_client.generate(
                         engine_prompt,
                         sampling_params,

@@ -223,6 +223,7 @@ async def build_async_engine_client_from_engine_args(
                 engine_client.shutdown()
 
     # V0MQLLMEngine.
+    # mac cpu mode will run here
     else:
         if "PROMETHEUS_MULTIPROC_DIR" not in os.environ:
             # Make TemporaryDirectory for prometheus multiprocessing
@@ -1195,7 +1196,7 @@ async def init_app_state(
         tool_parser=args.tool_call_parser,
         reasoning_parser=args.reasoning_parser,
         enable_prompt_tokens_details=args.enable_prompt_tokens_details,
-    ) if model_config.runner_type == "generate" else None
+    ) if model_config.runner_type == "generate" else None  # model_config.task default value
     state.openai_serving_completion = OpenAIServingCompletion(
         engine_client,
         model_config,
@@ -1345,7 +1346,7 @@ async def run_server_worker(listen_address,
     if log_config is not None:
         uvicorn_kwargs['log_config'] = log_config
 
-    async with build_async_engine_client(args, client_config) as engine_client:  # AsyncLLM
+    async with build_async_engine_client(args, client_config) as engine_client:  # AsyncLLM/MQLLMEngineClient
         app = build_app(args)
 
         vllm_config = await engine_client.get_vllm_config()  # AsyncLLM.from_vllm_config
