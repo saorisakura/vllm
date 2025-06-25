@@ -1424,6 +1424,7 @@ class ModelConfig:
         return (hasattr(self.hf_config, "matryoshka_dimensions")
                 or getattr(self.hf_config, "is_matryoshka", False))
 
+    # check
     @property
     def matryoshka_dimensions(self):
         return getattr(self.hf_config, "matryoshka_dimensions", None)

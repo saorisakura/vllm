@@ -21,6 +21,7 @@ class TokenizerGroup:
         self.tokenizer_config = tokenizer_config
         self.enable_lora = enable_lora
         self.max_input_length = max_input_length
+        # 初始化vllm serve facebook/opt-125m的模型
         self.tokenizer = get_tokenizer(self.tokenizer_id, **tokenizer_config)
         max_loras = tokenizer_config.get("max_loras", 0)
         self.lora_tokenizers = LRUCache[int, AnyTokenizer](
@@ -109,12 +110,12 @@ def init_tokenizer_from_configs(model_config: ModelConfig,
                                 scheduler_config: SchedulerConfig,
                                 lora_config: Optional[LoRAConfig]):
     return TokenizerGroup(
-        tokenizer_id=model_config.tokenizer,
+        tokenizer_id=model_config.tokenizer,  # serve启动配置的model：facebook/opt-125m
         enable_lora=bool(lora_config),
-        max_num_seqs=scheduler_config.max_num_seqs,
+        max_num_seqs=scheduler_config.max_num_seqs,  # 256
         max_loras=lora_config.max_loras if lora_config else 0,
         max_input_length=None,
-        tokenizer_mode=model_config.tokenizer_mode,
-        trust_remote_code=model_config.trust_remote_code,
-        revision=model_config.tokenizer_revision,
-        truncation_side=model_config.truncation_side)
+        tokenizer_mode=model_config.tokenizer_mode,  # auto
+        trust_remote_code=model_config.trust_remote_code,  # False
+        revision=model_config.tokenizer_revision,  # None
+        truncation_side=model_config.truncation_side)  # left

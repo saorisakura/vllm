@@ -262,9 +262,11 @@ class LLMEngine:
                                                     self.tokenizer,
                                                     mm_registry)
 
-        self.model_executor = executor_class(vllm_config=vllm_config)
+        # check
+        self.model_executor = executor_class(vllm_config=vllm_config)  # self._get_executor_cls -> UniProcExecutor[MAC CPU]
 
         if self.model_config.runner_type != "pooling":
+            # 默认是generate
             self._initialize_kv_caches()
 
         # If usage stat is enabled, collect relevant info.
@@ -333,11 +335,13 @@ class LLMEngine:
         # Create the scheduler.
         # NOTE: the cache_config here have been updated with the numbers of
         # GPU and CPU blocks, which are profiled in the distributed executor.
+        # scheduler_cls='vllm.core.scheduler.Scheduler'
         if isinstance(self.vllm_config.scheduler_config.scheduler_cls, str):
             Scheduler = resolve_obj_by_qualname(
                 self.vllm_config.scheduler_config.scheduler_cls)
         else:
             Scheduler = self.vllm_config.scheduler_config.scheduler_cls
+        # pipeline_parallel_size就是多个调度器
         self.scheduler = [
             Scheduler(
                 self.scheduler_config, self.cache_config, self.lora_config,
@@ -428,12 +432,22 @@ class LLMEngine:
         logger.info(("init engine (profile, create kv cache, "
                      "warmup model) took %.2f seconds"), elapsed)
 
+    # MQLLMEngine使用此方法创建executor_class
     @classmethod
     def _get_executor_cls(cls,
                           engine_config: VllmConfig) -> Type[ExecutorBase]:
         # distributed_executor_backend must be set in VllmConfig.__post_init__
         distributed_executor_backend = (
             engine_config.parallel_config.distributed_executor_backend)
+        # ParallelConfig(pipeline_parallel_size=1, tensor_parallel_size=1, data_parallel_size=1,
+        # data_parallel_size_local=1, data_parallel_rank=0, data_parallel_rank_local=0,
+        # data_parallel_master_ip='127.0.0.1', data_parallel_rpc_port=29550, data_parallel_master_port=0,
+        # data_parallel_backend='mp', enable_expert_parallel=False, max_parallel_loading_workers=None,
+        # disable_custom_all_reduce=True, tokenizer_pool_config=None, ray_workers_use_nsight=False,
+        # placement_group=None,
+        # distributed_executor_backend='uni', worker_cls='vllm.worker.cpu_worker.CPUWorker',
+        # sd_worker_cls='auto', worker_extension_cls='', world_size=1, rank=0,
+        # enable_multimodal_encoder_data_parallel=False)
         # Initialize the cluster and specify the executor class.
         if isinstance(distributed_executor_backend, type):
             if not issubclass(distributed_executor_backend, ExecutorBase):
@@ -1209,6 +1223,7 @@ class LLMEngine:
                     seq.append_token_id(sample.output_token, sample.logprobs,
                                         sample.output_embed)
 
+    # check
     def step(self) -> List[Union[RequestOutput, PoolingRequestOutput]]:
         """Performs one decoding iteration and returns newly generated results.
 
