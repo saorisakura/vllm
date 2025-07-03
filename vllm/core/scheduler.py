@@ -445,6 +445,9 @@ class Scheduler:
                 or self.cache_config.is_attention_free):
             version = "placeholder"
 
+        # SelfAttnBlockSpaceManager
+        # or
+        # PlaceholderBlockSpaceManager
         BlockSpaceManagerImpl = BlockSpaceManager.get_block_space_manager_class(
             version)
 

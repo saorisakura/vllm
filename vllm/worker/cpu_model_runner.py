@@ -656,6 +656,9 @@ class CPUModelRunner(CPUModelRunnerBase[ModelInputForCPUWithSamplingMetadata]):
             return []
 
         # Sample the next token.
+        # 在大语言模型（如 GPT 系列）生成文本的过程中，“token” 指文本的基本单位（可以是单词、子词或字符），
+        # 模型会预测序列中的下一个 token。“sample” 在这里表示从模型预测的候选 token 中，
+        # 通过一定策略（如随机采样、top-k 采样等）选择一个作为生成的下一个 token，从而逐步构建完整的文本序列。
         output = self.sampler(
             logits=logits,
             sampling_metadata=model_input.sampling_metadata,

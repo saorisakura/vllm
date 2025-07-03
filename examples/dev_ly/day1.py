@@ -1,3 +1,5 @@
+import json
+import logging
 from vllm import LLM, SamplingParams
 
 llm = LLM(model="facebook/opt-125m")
@@ -14,5 +16,6 @@ prompts = [
     "Once upon a time",
     "In a galaxy far, far away"
 ]
+# INFO 06-25 21:16:05 [llm_engine.py:432] init engine (profile, create kv cache, warmup model) took 0.70 seconds
 outputs = llm.generate(prompts, sampling_params)
-print(outputs)
+logging.warning(json.dumps(str(outputs), indent=2))

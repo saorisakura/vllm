@@ -263,7 +263,9 @@ class LLMEngine:
                                                     mm_registry)
 
         # check
-        self.model_executor = executor_class(vllm_config=vllm_config)  # self._get_executor_cls -> UniProcExecutor[MAC CPU]
+        # Initialize the worker and load the model.
+        # self._get_executor_cls -> UniProcExecutor[MAC CPU] -> cpu_worker -> cpu_model_runner
+        self.model_executor = executor_class(vllm_config=vllm_config)
 
         if self.model_config.runner_type != "pooling":
             # 默认是generate
@@ -594,7 +596,7 @@ class LLMEngine:
         seq_id = next(self.seq_counter)
         eos_token_id = self.input_preprocessor.get_eos_token_id(lora_request)
 
-        encoder_inputs, decoder_inputs = split_enc_dec_inputs(processed_inputs)
+        encoder_inputs, decoder_inputs = split_enc_dec_inputs(processed_inputs)  # None, {'prompt': 'Once upon a time', 'prompt_token_ids': [2, 11475, 2115, 10, 86], 'type': 'token'}
 
         seq = Sequence(seq_id, decoder_inputs, block_size, eos_token_id,
                        lora_request, prompt_adapter_request)
@@ -730,7 +732,7 @@ class LLMEngine:
             tokenization_kwargs=tokenization_kwargs,
             lora_request=lora_request,
             prompt_adapter_request=prompt_adapter_request,
-        )
+        )  # {'prompt': 'Once upon a time', 'prompt_token_ids': [2, 11475, 2115, 10, 86], 'type': 'token'}
 
         self._add_processed_request(
             request_id=request_id,
@@ -1364,6 +1366,7 @@ class LLMEngine:
                     virtual_engine]
 
             try:
+                # UniProcExecutor -> worker_base -> cpu_worker -> cpu_model_runner.execute_model
                 outputs = self.model_executor.execute_model(
                     execute_model_req=execute_model_req)
                 self._skip_scheduling_next_step = False

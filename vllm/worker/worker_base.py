@@ -554,6 +554,7 @@ class WorkerWrapperBase:
         from vllm.plugins import load_general_plugins
         load_general_plugins()
 
+        # vllm.worker.cpu_worker.CPUWorker
         if isinstance(self.vllm_config.parallel_config.worker_cls, str):
             worker_class = resolve_obj_by_qualname(
                 self.vllm_config.parallel_config.worker_cls)
@@ -568,6 +569,7 @@ class WorkerWrapperBase:
                               bytes)
             worker_class = cloudpickle.loads(
                 self.vllm_config.parallel_config.worker_cls)
+        # none in default
         if self.vllm_config.parallel_config.worker_extension_cls:
             worker_extension_cls = resolve_obj_by_qualname(
                 self.vllm_config.parallel_config.worker_extension_cls)
@@ -621,6 +623,7 @@ class WorkerWrapperBase:
             logger.exception(msg)
             raise e
 
+    # 有了这个方法才能让uniproc_executor执行load_model成功
     def __getattr__(self, attr):
         return getattr(self.worker, attr)
 

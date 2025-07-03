@@ -43,6 +43,7 @@ class UniProcExecutor(ExecutorBase):
             distributed_init_method=distributed_init_method,
             is_driver_worker=is_driver_worker,
         )
+        # call self.driver_worker = WorkerWrapperBase submethod
         self.collective_rpc("init_worker", args=([kwargs], ))
         self.collective_rpc("init_device")
         self.collective_rpc("load_model")
